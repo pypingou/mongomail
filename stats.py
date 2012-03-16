@@ -66,6 +66,12 @@ regex = '.*pingoured.fr.*'
 cnt = mails.find({'From': re.compile(regex, re.IGNORECASE)}).count()
 print 'pingoured.fr sent %s emails' % cnt
 
+
+# Number of email sent by an email redhat.com
+regex = '.*redhat.com.*'
+cnt = mails.find({'From': re.compile(regex, re.IGNORECASE)}).count()
+print 'redhat.com sent %s emails' % cnt
+
 # The subject of the email sent by an email containing FamilleCollet.com
 #regex = '.*FamilleCollet.com.*'
 #emails = mails.find({'From': re.compile(regex, re.IGNORECASE)})
@@ -75,7 +81,7 @@ print 'pingoured.fr sent %s emails' % cnt
 
 
 # The subject of the email sent by an email containing pingoured.fr
-regex = '.*pingoured.fr.*'
+#regex = '.*pingoured.fr.*'
 #emails = mails.find({'From': re.compile(regex, re.IGNORECASE)})
 #print 'pingou sent email about:'
 #for email in emails:
