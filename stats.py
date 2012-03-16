@@ -113,3 +113,18 @@ print 'It gathered %s emails' % order[0]
 print 'The second thread who gathered the most people is: "%s"' % ','.join(threads[order[1]])
 print 'It gathered %s emails' % order[1]
 
+
+# Email mentionning rawhide
+mails.create_index('content')
+mails.ensure_index('content')
+regex = '.*rawhide.*'
+cnt = mails.find({'content': re.compile(regex, re.IGNORECASE)}).count()
+print '%s emails mentionned %s in their body' % (cnt, regex)
+
+regex = '.*pingou.*'
+cnt = mails.find({'content': re.compile(regex, re.IGNORECASE)}).count()
+print '%s emails mentionned %s in their body' % (cnt, regex)
+
+regex = '.*rawhide.*report.*'
+cnt = mails.find({'Subject': re.compile(regex, re.IGNORECASE)}).count()
+print '%s emails mentionned %s in their subject' % (cnt, regex)
