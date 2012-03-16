@@ -5,8 +5,10 @@ import urlgrabber
 import gzip
 from multiprocessing import Pool
 
+
 years = (2010, 2011, 2012,)
-months = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+months = ('January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December')
 
 
 def archive_downloader(i):
@@ -23,5 +25,3 @@ def archive_downloader(i):
 if __name__ == "__main__":
     p = Pool(5)
     p.map(archive_downloader, itertools.product(years, months))
-
-
