@@ -16,7 +16,13 @@ def archive_downloader(i):
     filename = "http://lists.fedoraproject.org/pipermail/devel/{0}".format(basename)
     try:
         urlgrabber.urlgrab(filename)
-        with open(basename.replace(".gz", ""), "w") as f:
+        year = basename.split('-')[0]
+        month = basename.split('-')[1].split('.')[0]
+        pos = str(months.index(month) + 1)
+        if len(pos) == 1:
+            pos = '0%s' % pos
+        newname = '%s-%s-%s.txt' % (year, pos, month)
+        with open(newname, "w") as f:
            f.write(gzip.open(basename).read())
         print "== {0} downloaded ==".format(filename)
     except urlgrabber.grabber.URLGrabError:
