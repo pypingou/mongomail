@@ -37,15 +37,14 @@ def to_mongo(mbfile):
         keys = infos.keys()
         ## There seem to be a problem to parse some messages
         if not keys:
-            #print infos.keys()
-            #print mbfile
+            print '  Failed: %s keys: "%s"' % (mbfile, keys)
             #print message
             continue
         try:
             if '--assume-unique' in sys.argv or \
                 mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
                 infos['Date'] = convert_date(infos['Date'])
-                infos['Content'] = message.as_string()
+                infos['Content'] = message.get_payload()
                 mails.insert(infos)
                 cnt = cnt + 1
         except Exception, err:
@@ -60,7 +59,7 @@ def get_document_size():
 
 
 if __name__ == '__main__':
-    #sys.argv.append('2012-January.txt')
+    #sys.argv.append('devel/2012-January.txt')
     if len(sys.argv) == 1 or '-h' in sys.argv or '--help' in sys.argv:
         print '''USAGE:
 python mbox_to_mongo.py mbox_file [mbox_file]'''
