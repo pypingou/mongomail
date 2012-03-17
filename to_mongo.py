@@ -3,19 +3,34 @@
 # Import the content of a mbox file into mongodb
 
 import bson
+import datetime
+import email.Utils
 import mailbox
 import pymongo
 import os
 import sys
+import time
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['fedora-devel']
+db = connection['devel']
 mails = db.mails
+
+def convert_date(date_string):
+    """ Convert the string of the date to a datetime object. """
+    date_string = date_string.strip()
+    time_tuple = email.Utils.parsedate(date_string)
+
+    # convert time_tuple to datetime
+    EpochSeconds = time.mktime(time_tuple)
+    dt = datetime.datetime.fromtimestamp(EpochSeconds)
+    return dt
 
 def to_mongo(mbfile):
     """ Upload all the emails in a mbox file into a mongo database. """
     cnt = 0
+    cnt_read = 0
     for message in mailbox.mbox(mbfile):
+        cnt_read = cnt_read + 1
         infos = {}
         for it in message.keys():
             infos[it] = message[it]
@@ -26,18 +41,17 @@ def to_mongo(mbfile):
             #print mbfile
             #print message
             continue
-        infos['content'] = message.as_string()
         try:
-            if not mails.find(infos).count():
+            if '--assume-unique' in sys.argv or \
+                mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
+                infos['Date'] = convert_date(infos['Date'])
+                infos['Content'] = message.as_string()
                 mails.insert(infos)
                 cnt = cnt + 1
-        except bson.errors.InvalidStringData, err:
-            ## My guess, another encoding issue as we meet sometime...
-            ## 2010-February.txt has it
-            #print mbfile
-            #print err
-            #print message
-            continue
+        except Exception, err:
+            print '  Failed: %s error: "%s"' % (mbfile, err)
+            print '  Failed:', message['Subject'], message['Date'], message['From']
+    print '  %s email read' % cnt_read
     print '  %s email added to the database' % cnt
 
 def get_document_size():
@@ -46,7 +60,7 @@ def get_document_size():
 
 
 if __name__ == '__main__':
-    sys.argv.append('2012-January.txt')
+    #sys.argv.append('2012-January.txt')
     if len(sys.argv) == 1 or '-h' in sys.argv or '--help' in sys.argv:
         print '''USAGE:
 python mbox_to_mongo.py mbox_file [mbox_file]'''
