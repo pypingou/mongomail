@@ -12,7 +12,7 @@ import sys
 import time
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['packaging']
+db = connection['devel']
 mails = db.mails
 mails.create_index('Message-ID')
 mails.ensure_index('Message-ID')
@@ -48,6 +48,12 @@ def to_mongo(mbfile):
                 infos['Date'] = convert_date(infos['Date'])
                 infos['Content'] = message.get_payload()
                 thread_id = 0
+                db.mails.create_index('Message-ID')
+                db.mails.ensure_index('Message-ID')
+                db.mails.create_index('In-Reply-To')
+                db.mails.ensure_index('In-Reply-To')
+                db.mails.create_index('Thread-ID')
+                db.mails.ensure_index('Thread-ID')
                 if not 'In-Reply-To' in infos:
                     res = db.mails.find(
                         {'In-Reply-To': {'$exists': False},
