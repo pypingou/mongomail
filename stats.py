@@ -6,11 +6,14 @@ import pymongo
 import re
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['fedora-devel']
+db = connection['devel']
 mails = db.mails
 
 # The number of emails:
 print '%s emails in the database' % mails.count()
+mails.create_index('Message-ID')
+mails.ensure_index('Message-ID')
+print '%s distinct emails in the database' % len(mails.distinct('Message-ID'))
 
 
 ## There is something fishy going on about the dates, most likely needs
@@ -19,10 +22,10 @@ print '%s emails in the database' % mails.count()
 mails.create_index('Date')
 mails.ensure_index('Date')
 res = mails.find(sort=[('Date', pymongo.DESCENDING)])
-#print 'The first email in the database is from: %s' % res[0]['Date']
+print 'The first email in the database is from: %s' % res[0]['Date']
 # Last email
 res = mails.find(sort=[('Date', pymongo.ASCENDING)])
-#print 'The last email in the database is from: %s' % res[0]['Date']
+print 'The last email in the database is from: %s' % res[0]['Date']
 
 # The number of people who mailed the list:
 mails.create_index('From')
@@ -115,9 +118,20 @@ print 'It gathered %s emails' % order[1]
 
 
 # Email mentionning rawhide terms in their subject or body
-for term in ['pingou', 'rawhide', 'rawhide.*report']:
+mails.create_index('Content')
+mails.ensure_index('Content')
+for term in ['pingou', 'rawhide', 'rawhide.*report', '\!\!\!\!\!\!\!']:
     regex = '.*%s.*' % term
     cnt = mails.find({'Subject': re.compile(regex, re.IGNORECASE)}).count()
     print '%s emails mentionned %s in their subject' % (cnt, regex)
-    cnt = mails.find({'content': re.compile(regex, re.IGNORECASE)}).count()
+    cnt = mails.find({'Content': re.compile(regex, re.IGNORECASE)}).count()
     print '%s emails mentionned %s in their body' % (cnt, regex)
+
+# Emails in February 2012
+from datetime import datetime
+start = datetime(2012, 2, 1)
+end = datetime(2012, 3, 1)
+mails.create_index('Date')
+mails.ensure_index('Date')
+res = db.mails.find({"Date": {"$gte": start, "$lt": end}}).count()
+print '%s were sent between %s and %s' % (res, start, end)
