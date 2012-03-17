@@ -12,8 +12,10 @@ import sys
 import time
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['devel']
+db = connection['packaging']
 mails = db.mails
+mails.create_index('Message-ID')
+mails.ensure_index('Message-ID')
 
 def convert_date(date_string):
     """ Convert the string of the date to a datetime object. """
@@ -45,6 +47,21 @@ def to_mongo(mbfile):
                 mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
                 infos['Date'] = convert_date(infos['Date'])
                 infos['Content'] = message.get_payload()
+                thread_id = 0
+                if not 'In-Reply-To' in infos:
+                    res = db.mails.find(
+                        {'In-Reply-To': {'$exists': False},
+                         'Thread-ID': {'$exists': True}},
+                          sort=[('Thread-ID', pymongo.DESCENDING)]);
+                    for el in res:
+                        thread_id = int(el['Thread-ID'])
+                        break
+                    infos['Thread-ID'] = thread_id + 1
+                else:
+                    res = db.mails.find_one({'Message-ID': \
+                        infos['In-Reply-To']})
+                    if res and 'Thread-ID' in res:
+                        infos['Thread-ID'] = res['Thread-ID']
                 mails.insert(infos)
                 cnt = cnt + 1
         except Exception, err:
