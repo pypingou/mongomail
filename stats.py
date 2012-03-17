@@ -6,10 +6,11 @@ import pymongo
 import re
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['devel']
+#db = connection['devel']
+db = connection['packaging']
 mails = db.mails
 
-# The number of emails:
+## The number of emails:
 print '%s emails in the database' % mails.count()
 mails.create_index('Message-ID')
 mails.ensure_index('Message-ID')
@@ -135,3 +136,16 @@ mails.create_index('Date')
 mails.ensure_index('Date')
 res = db.mails.find({"Date": {"$gte": start, "$lt": end}}).count()
 print '%s were sent between %s and %s' % (res, start, end)
+
+
+def get_emails_thread(start_email, thread):
+    for el in db.mails.find({'In-Reply-To': start_email['Message-ID']}):
+        thread.append(el)
+        get_emails_thread(el, thread)
+    return thread
+
+# Beginning of thread == No 'In-Reply-To' header
+for el in db.mails.find({'In-Reply-To': {'$exists':False}},
+        sort=[('Date', pymongo.ASCENDING)]):
+    thread = get_emails_thread(el, [el])
+    print el['Subject'], len(thread)
