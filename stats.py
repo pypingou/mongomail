@@ -7,7 +7,7 @@ import re
 
 connection = pymongo.Connection('localhost', 27017)
 #db = connection['devel']
-db = connection['packaging']
+db = connection['devel']
 mails = db.mails
 
 ## The number of emails:
@@ -145,7 +145,14 @@ def get_emails_thread(start_email, thread):
     return thread
 
 # Beginning of thread == No 'In-Reply-To' header
-for el in db.mails.find({'In-Reply-To': {'$exists':False}},
-        sort=[('Date', pymongo.ASCENDING)]):
-    thread = get_emails_thread(el, [el])
-    print el['Subject'], len(thread)
+#for el in db.mails.find({'In-Reply-To': {'$exists':False}},
+        #sort=[('Date', pymongo.ASCENDING)]):
+    #thread = get_emails_thread(el, [el])
+    #print el['Subject'], len(thread)
+
+
+archives = set()
+for entry in db.mails.find():
+    date = entry['Date']
+    archives.add((date.year, date.month))
+print len(archives)
