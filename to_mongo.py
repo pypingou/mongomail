@@ -23,6 +23,21 @@ def convert_date(date_string):
     dt = datetime.datetime.fromtimestamp(EpochSeconds)
     return dt
 
+def get_max_thread_id(database):
+    db = connection[database]
+    db.mails.create_index('In-Reply-To')
+    db.mails.ensure_index('In-Reply-To')
+    db.mails.create_index('Thread-ID')
+    db.mails.ensure_index('Thread-ID')
+    res = db.mails.find(
+        {'In-Reply-To': {'$exists': False},
+         'Thread-ID': {'$exists': True}},
+          sort=[('Thread-ID', pymongo.DESCENDING)]);
+    for el in res:
+        return int(el['Thread-ID'])
+    return 0
+
+
 def to_mongo(mbfile, database):
     """ Upload all the emails in a mbox file into a mongo database. """
     db = connection[database]
@@ -51,20 +66,15 @@ def to_mongo(mbfile, database):
                 db.mails.ensure_index('In-Reply-To')
                 db.mails.create_index('Thread-ID')
                 db.mails.ensure_index('Thread-ID')
-                if not 'In-Reply-To' in infos:
-                    res = db.mails.find(
-                        {'In-Reply-To': {'$exists': False},
-                         'Thread-ID': {'$exists': True}},
-                          sort=[('Thread-ID', pymongo.DESCENDING)]);
-                    for el in res:
-                        thread_id = int(el['Thread-ID'])
-                        break
-                    infos['Thread-ID'] = thread_id + 1
+                if not 'References' in infos:
+                    infos['Thread-ID'] = get_max_thread_id(database) + 1
                 else:
-                    res = db.mails.find_one({'Message-ID': \
-                        infos['In-Reply-To']})
+                    ref = infos['References'].split('\n')[0].strip()
+                    res = db.mails.find_one({'Message-ID': ref})
                     if res and 'Thread-ID' in res:
                         infos['Thread-ID'] = res['Thread-ID']
+                    else:
+                        infos['Thread-ID'] = get_max_thread_id(database) + 1
                 infos['Category'] = 'Question'
                 if 'agenda' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
@@ -85,13 +95,14 @@ def get_document_size(database):
 
 
 if __name__ == '__main__':
-    #sys.argv.append('devel/2012-January.txt')
+    #sys.argv.extend(['devel', 'lists/devel-2012-03-March.txt'])
     if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
         print '''USAGE:
 python mbox_to_mongo.py db_name mbox_file [mbox_file]'''
     else:
         print 'Adding to database: %s' % sys.argv[1]
         for mbfile in sys.argv[2:]:
+            print mbfile
             if os.path.exists(mbfile):
                 print mbfile
                 to_mongo(mbfile, sys.argv[1])
