@@ -12,10 +12,6 @@ import sys
 import time
 
 connection = pymongo.Connection('localhost', 27017)
-db = connection['devel']
-mails = db.mails
-mails.create_index('Message-ID')
-mails.ensure_index('Message-ID')
 
 def convert_date(date_string):
     """ Convert the string of the date to a datetime object. """
@@ -27,8 +23,9 @@ def convert_date(date_string):
     dt = datetime.datetime.fromtimestamp(EpochSeconds)
     return dt
 
-def to_mongo(mbfile):
+def to_mongo(mbfile, database):
     """ Upload all the emails in a mbox file into a mongo database. """
+    db = connection[database]
     cnt = 0
     cnt_read = 0
     for message in mailbox.mbox(mbfile):
@@ -44,7 +41,7 @@ def to_mongo(mbfile):
             continue
         try:
             if '--assume-unique' in sys.argv or \
-                mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
+                db.mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
                 infos['Date'] = convert_date(infos['Date'])
                 infos['Content'] = message.get_payload()
                 thread_id = 0
@@ -68,7 +65,12 @@ def to_mongo(mbfile):
                         infos['In-Reply-To']})
                     if res and 'Thread-ID' in res:
                         infos['Thread-ID'] = res['Thread-ID']
-                mails.insert(infos)
+                infos['Category'] = 'Question'
+                if 'agenda' in infos['Subject'].lower():
+                    infos['Category'] = 'Agenda'
+                if 'reminder' in infos['Subject'].lower():
+                    infos['Category'] = 'Agenda'
+                db.mails.insert(infos)
                 cnt = cnt + 1
         except Exception, err:
             print '  Failed: %s error: "%s"' % (mbfile, err)
@@ -76,22 +78,24 @@ def to_mongo(mbfile):
     print '  %s email read' % cnt_read
     print '  %s email added to the database' % cnt
 
-def get_document_size():
+def get_document_size(database):
     """ Return the size of the document in mongodb. """
-    print '  %s emails are stored into the database' % mails.count()
+    db = connection[database]
+    print '  %s emails are stored into the database' % db.mails.count()
 
 
 if __name__ == '__main__':
     #sys.argv.append('devel/2012-January.txt')
-    if len(sys.argv) == 1 or '-h' in sys.argv or '--help' in sys.argv:
+    if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
         print '''USAGE:
-python mbox_to_mongo.py mbox_file [mbox_file]'''
+python mbox_to_mongo.py db_name mbox_file [mbox_file]'''
     else:
-        for mbfile in sys.argv[1:]:
+        print 'Adding to database: %s' % sys.argv[1]
+        for mbfile in sys.argv[2:]:
             if os.path.exists(mbfile):
                 print mbfile
-                to_mongo(mbfile)
-                get_document_size()
+                to_mongo(mbfile, sys.argv[1])
+                get_document_size(sys.argv[1])
 
 """
 ## Test command-line:
