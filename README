@@ -25,8 +25,11 @@ yum install pymongo mongodb-server
 * Start the server
 sudo service mongd start
 
-* Retrieve the archives from mailman
-sh get_mbox.sh
+* Retrieve the archives from mailman in a specific directory
+mkdir lists
+cd lists
+python ../get_mbox.py
+cd ..
 
 * Load the archives into mongodb
 python to_mongo.py
