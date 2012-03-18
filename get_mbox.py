@@ -5,7 +5,10 @@ import urlgrabber
 import gzip
 from multiprocessing import Pool
 
-lists = ['devel', 'packaging', 'fr-users']
+#lists = ['devel']
+#lists = ['packaging']
+#lists = ['fr-users']
+#lists = ['devel', 'packaging', 'fr-users']
 years = [2010, 2011, 2012, 2009, 2008, 2007, 2006, 2005, 2004]
 months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
     'August', 'September', 'October', 'November', 'December']
