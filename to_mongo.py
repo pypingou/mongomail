@@ -27,14 +27,14 @@ def get_max_thread_id(database):
     db = connection[database]
     db.mails.create_index('In-Reply-To')
     db.mails.ensure_index('In-Reply-To')
-    db.mails.create_index('Thread-ID')
-    db.mails.ensure_index('Thread-ID')
+    db.mails.create_index('ThreadID')
+    db.mails.ensure_index('ThreadID')
     res = db.mails.find(
         {'In-Reply-To': {'$exists': False},
-         'Thread-ID': {'$exists': True}},
-          sort=[('Thread-ID', pymongo.DESCENDING)]);
+         'ThreadID': {'$exists': True}},
+          sort=[('ThreadID', pymongo.DESCENDING)]);
     for el in res:
-        return int(el['Thread-ID'])
+        return int(el['ThreadID'])
     return 0
 
 
@@ -64,17 +64,17 @@ def to_mongo(mbfile, database):
                 db.mails.ensure_index('Message-ID')
                 db.mails.create_index('In-Reply-To')
                 db.mails.ensure_index('In-Reply-To')
-                db.mails.create_index('Thread-ID')
-                db.mails.ensure_index('Thread-ID')
+                db.mails.create_index('ThreadID')
+                db.mails.ensure_index('ThreadID')
                 if not 'References' in infos:
-                    infos['Thread-ID'] = get_max_thread_id(database) + 1
+                    infos['ThreadID'] = get_max_thread_id(database) + 1
                 else:
                     ref = infos['References'].split('\n')[0].strip()
                     res = db.mails.find_one({'Message-ID': ref})
-                    if res and 'Thread-ID' in res:
-                        infos['Thread-ID'] = res['Thread-ID']
+                    if res and 'ThreadID' in res:
+                        infos['ThreadID'] = res['ThreadID']
                     else:
-                        infos['Thread-ID'] = get_max_thread_id(database) + 1
+                        infos['ThreadID'] = get_max_thread_id(database) + 1
                 infos['Category'] = 'Question'
                 if 'agenda' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
