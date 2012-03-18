@@ -29,6 +29,7 @@ sudo service mongd start
 mkdir lists
 cd lists
 python ../get_mbox.py
+rm *.gz  # remove empty .gz files
 cd ..
 
 * Load the archives into mongodb
