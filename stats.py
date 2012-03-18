@@ -139,7 +139,7 @@ print '%s were sent between %s and %s' % (res, start, end)
 
 
 def get_emails_thread(start_email, thread):
-    for el in db.mails.find({'In-Reply-To': start_email['Message-ID']}):
+    for el in db.mails.find({'References': start_email['Message-ID']}):
         thread.append(el)
         get_emails_thread(el, thread)
     return thread
