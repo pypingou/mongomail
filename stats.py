@@ -60,15 +60,24 @@ print 'These prolifix authors are: %s' % ','.join(authors[order[0]])
 print 'The following maximum number of email sent by one person is: %s' % order[1]
 print 'These prolifix authors are: %s' % ','.join(authors[order[1]])
 
-# Number of email sent by an email containing FamilleCollet.com
+# Number of emails sent by an email containing FamilleCollet.com
 regex = '.*FamilleCollet.com.*'
 cnt = mails.find({'From': re.compile(regex, re.IGNORECASE)}).count()
 print 'FamilleCollet.com sent %s emails' % cnt
 
-# Number of email sent by an email from pingoured.fr
+# Number of emails sent by an email from pingoured.fr
 regex = '.*pingoured.fr.*'
 cnt = mails.find({'From': re.compile(regex, re.IGNORECASE)}).count()
 print 'pingoured.fr sent %s emails' % cnt
+
+# Number of emails sent by an email from pingoured.fr or FamilleCollet.com
+regex = '.*pingoured.fr.*'
+regex2 = '.*FamilleCollet.com.*'
+cnt = mails.find({'$or' : [
+            {'From': re.compile(regex, re.IGNORECASE)},
+            {'From': re.compile(regex2, re.IGNORECASE)}
+            ]} ).count()
+print 'pingoured.fr or famillecollet.com sent %s emails' % cnt
 
 
 # Number of email sent by an email redhat.com
