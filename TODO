@@ -1,0 +1,10 @@
+Small todo list of what needs to be done still here:
+
+* Use hash of the first post as ThreadID so that the IDs are consistent even when you load only a sub-part of the data.
+* Check encoding of content/title/authors...
+* Split the From field into two fields:
+  - From the name of the author
+  - Email the email of the author (that can be used for the captcha)
+* Add a 'Full' field or something to keep the complete email (including gpg key &co)
+* Add a 'legacy_id' field containing the identifier used by pipermail (useful for forwarding)
+
