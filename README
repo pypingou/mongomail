@@ -26,6 +26,9 @@ yum install pymongo mongodb-server
 sudo service mongd start
 
 * Retrieve the archives from mailman in a specific directory
+# Currently we retrieve archives from the Fedora project's list:
+# devel, packaging fr-users
+
 mkdir lists
 cd lists
 python ../get_mbox.py
@@ -37,6 +40,13 @@ python to_mongo.py
 
 * See the stats:
 python stats.py
+
+
+Note:
+-----
+The script to_mongo.py should still be improve to take into account
+email which are not encoded in UTF-8.
+When loading the fr-users archives this leads to quite some problems.
 
 
 LICENSE: 
