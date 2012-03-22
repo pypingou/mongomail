@@ -14,6 +14,8 @@ import time
 
 connection = pymongo.Connection('localhost', 27017)
 
+TOTALCNT = 0
+
 def convert_date(date_string):
     """ Convert the string of the date to a datetime object. """
     date_string = date_string.strip()
@@ -41,11 +43,13 @@ def get_max_thread_id(database):
 
 def to_mongo(mbfile, database):
     """ Upload all the emails in a mbox file into a mongo database. """
+    global TOTALCNT
     db = connection[database]
     cnt = 0
     cnt_read = 0
     for message in mailbox.mbox(mbfile):
         cnt_read = cnt_read + 1
+        TOTALCNT = TOTALCNT + 1
         infos = {}
         for it in message.keys():
             infos[it] = message[it]
@@ -88,6 +92,9 @@ def to_mongo(mbfile, database):
                 if 'reminder' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
                 infos['Full'] = message.as_string()
+                ## TODO: I'm not sure the TOTALCNT approach is the right one
+                ## we should discuss this with the pipermail guys
+                infos['LegacyID'] = TOTALCNT
                 db.mails.insert(infos)
                 cnt = cnt + 1
         except Exception, err:
