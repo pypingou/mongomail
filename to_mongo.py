@@ -87,6 +87,7 @@ def to_mongo(mbfile, database):
                     infos['Category'] = 'Agenda'
                 if 'reminder' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
+                infos['Full'] = message.as_string()
                 db.mails.insert(infos)
                 cnt = cnt + 1
         except Exception, err:
