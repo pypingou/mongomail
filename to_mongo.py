@@ -6,8 +6,9 @@ import bson
 import datetime
 import email.Utils
 import mailbox
-import pymongo
 import os
+import pymongo
+import re
 import sys
 import time
 
@@ -54,6 +55,12 @@ def to_mongo(mbfile, database):
             print '  Failed: %s keys: "%s"' % (mbfile, keys)
             #print message
             continue
+        if 'From' in infos:
+            regex = '(.*)\((.*)\)'
+            email, name = re.match(regex, infos['From']).groups()
+            infos['From'] = name
+            email = email.replace(' at ', '@')
+            infos['Email'] = email
         try:
             if '--assume-unique' in sys.argv or \
                 db.mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
