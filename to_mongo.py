@@ -57,7 +57,7 @@ def to_mongo(mbfile, database):
             continue
         if 'From' in infos:
             regex = '(.*)\((.*)\)'
-				match = re.match(regex, infos['From'])
+            match = re.match(regex, infos['From'])
             if match:
                 email, name = match.groups()
                 infos['From'] = name
