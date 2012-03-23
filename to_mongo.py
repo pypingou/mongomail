@@ -57,10 +57,12 @@ def to_mongo(mbfile, database):
             continue
         if 'From' in infos:
             regex = '(.*)\((.*)\)'
-            email, name = re.match(regex, infos['From']).groups()
-            infos['From'] = name
-            email = email.replace(' at ', '@')
-            infos['Email'] = email
+				match = re.match(regex, infos['From'])
+            if match:
+                email, name = match.groups()
+                infos['From'] = name
+                email = email.replace(' at ', '@')
+                infos['Email'] = email
         try:
             if '--assume-unique' in sys.argv or \
                 db.mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
@@ -109,7 +111,7 @@ def get_document_size(database):
 
 
 if __name__ == '__main__':
-    #sys.argv.extend(['devel', 'lists/devel-2012-03-March.txt'])
+    sys.argv.extend(['devel', 'lists/devel-2012-03-March.txt'])
     if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
         print '''USAGE:
 python mbox_to_mongo.py db_name mbox_file [mbox_file]'''
