@@ -73,14 +73,16 @@ def to_mongo(mbfile, database):
                 thread_id = 0
                 db.mails.create_index('Message-ID')
                 db.mails.ensure_index('Message-ID')
-                db.mails.create_index('In-Reply-To')
-                db.mails.ensure_index('In-Reply-To')
                 db.mails.create_index('ThreadID')
                 db.mails.ensure_index('ThreadID')
-                if not 'References' in infos:
+                if not 'References' in infos and not 'In-Reply-To' in infos:
                     infos['ThreadID'] = get_max_thread_id(database) + 1
                 else:
-                    ref = infos['References'].split('\n')[0].strip()
+                    ref = None
+                    if 'In-Reply-To' in infos:
+                        ref= infos['In-Reply-To']
+                    else:
+                        ref= infos['References'].split('\n')[0].strip()
                     res = db.mails.find_one({'Message-ID': ref})
                     if res and 'ThreadID' in res:
                         infos['ThreadID'] = res['ThreadID']
@@ -92,6 +94,7 @@ def to_mongo(mbfile, database):
                 if 'reminder' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
                 infos['Full'] = message.as_string()
+                
                 ## TODO: I'm not sure the TOTALCNT approach is the right one
                 ## we should discuss this with the pipermail guys
                 infos['LegacyID'] = TOTALCNT
