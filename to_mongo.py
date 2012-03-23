@@ -4,13 +4,13 @@
 
 import bson
 import datetime
-import email.Utils
 import mailbox
 import os
 import pymongo
 import re
 import sys
 import time
+from dateutil.parser import parse
 
 connection = pymongo.Connection('localhost', 27017)
 
@@ -19,11 +19,7 @@ TOTALCNT = 0
 def convert_date(date_string):
     """ Convert the string of the date to a datetime object. """
     date_string = date_string.strip()
-    time_tuple = email.Utils.parsedate(date_string)
-
-    # convert time_tuple to datetime
-    EpochSeconds = time.mktime(time_tuple)
-    dt = datetime.datetime.fromtimestamp(EpochSeconds)
+    dt = parse(date_string)
     return dt
 
 def get_max_thread_id(database):
