@@ -3,6 +3,7 @@
 # Import the content of a mbox file into mongodb
 
 import bson
+from bson.errors import InvalidStringData
 import datetime
 import mailbox
 import os
@@ -11,6 +12,7 @@ import re
 import sys
 import time
 from dateutil.parser import parse
+from kitchen.text.converters import to_bytes
 
 connection = pymongo.Connection('localhost', 27017)
 
@@ -47,6 +49,8 @@ def to_mongo(mbfile, database):
         cnt_read = cnt_read + 1
         TOTALCNT = TOTALCNT + 1
         infos = {}
+        ## TODO: We need to catch-up Subjects/From which are of a specific
+        ## encoding.
         for it in message.keys():
             infos[it] = message[it]
         keys = infos.keys()
@@ -68,6 +72,11 @@ def to_mongo(mbfile, database):
                 db.mails.find({'Message-ID': infos['Message-ID']}).count() == 0:
                 infos['Date'] = convert_date(infos['Date'])
                 infos['Content'] = message.get_payload()
+                try:
+                    bson.BSON.encode({'content' : infos['Content']})
+                except InvalidStringData:
+                    ## TODO: Do something about this encoding issue
+                    raise InvalidStringData('Email has invalid content')
                 thread_id = 0
                 db.mails.create_index('Message-ID')
                 db.mails.ensure_index('Message-ID')
@@ -92,7 +101,12 @@ def to_mongo(mbfile, database):
                 if 'reminder' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
                 infos['Full'] = message.as_string()
-                
+                try:
+                    bson.BSON.encode({'content' : infos['Full']})
+                except InvalidStringData:
+                    ## TODO: Do something about this encoding issue
+                    raise InvalidStringData('Email has invalid full version')
+
                 ## TODO: I'm not sure the TOTALCNT approach is the right one
                 ## we should discuss this with the pipermail guys
                 infos['LegacyID'] = TOTALCNT
