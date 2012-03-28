@@ -11,8 +11,10 @@ import pymongo
 import re
 import sys
 import time
+from base64 import b32encode
 from dateutil.parser import parse
 from kitchen.text.converters import to_bytes
+from hashlib import sha1
 
 connection = pymongo.Connection('localhost', 27017)
 
@@ -23,20 +25,6 @@ def convert_date(date_string):
     date_string = date_string.strip()
     dt = parse(date_string)
     return dt
-
-def get_max_thread_id(database):
-    db = connection[database]
-    db.mails.create_index('In-Reply-To')
-    db.mails.ensure_index('In-Reply-To')
-    db.mails.create_index('ThreadID')
-    db.mails.ensure_index('ThreadID')
-    res = db.mails.find(
-        {'In-Reply-To': {'$exists': False},
-         'ThreadID': {'$exists': True}},
-          sort=[('ThreadID', pymongo.DESCENDING)]);
-    for el in res:
-        return int(el['ThreadID'])
-    return 0
 
 
 def to_mongo(mbfile, database):
@@ -83,7 +71,7 @@ def to_mongo(mbfile, database):
                 db.mails.create_index('ThreadID')
                 db.mails.ensure_index('ThreadID')
                 if not 'References' in infos and not 'In-Reply-To' in infos:
-                    infos['ThreadID'] = get_max_thread_id(database) + 1
+                    infos['ThreadID'] = b32encode(sha1(infos['Message-ID']).digest())
                 else:
                     ref = None
                     if 'In-Reply-To' in infos:
@@ -94,7 +82,7 @@ def to_mongo(mbfile, database):
                     if res and 'ThreadID' in res:
                         infos['ThreadID'] = res['ThreadID']
                     else:
-                        infos['ThreadID'] = get_max_thread_id(database) + 1
+                        infos['ThreadID'] = b32encode(sha1(infos['Message-ID']).digest())
                 infos['Category'] = 'Question'
                 if 'agenda' in infos['Subject'].lower():
                     infos['Category'] = 'Agenda'
