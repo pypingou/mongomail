@@ -48,8 +48,9 @@ def to_mongo(mbfile, database):
             print '  Failed: %s keys: "%s"' % (mbfile, keys)
             #print message
             continue
-        infos['MessageID'] = infos['MessageID'].replace('<', ''
-            ).replace('>', '')
+        if 'MessageID' in infos:
+            infos['MessageID'] = infos['MessageID'].replace('<', ''
+                ).replace('>', '')
         if 'From' in infos:
             regex = '(.*)\((.*)\)'
             match = re.match(regex, infos['From'])
