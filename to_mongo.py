@@ -58,7 +58,7 @@ def to_mongo(mbfile, database):
                 email, name = match.groups()
                 infos['From'] = name
                 email = email.replace(' at ', '@')
-                infos['Email'] = email
+                infos['Email'] = email.strip()
         try:
             if db.mails.find({'MessageID': infos['MessageID']}).count() == 0:
                 infos['Date'] = convert_date(infos['Date'])
