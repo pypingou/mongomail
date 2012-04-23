@@ -36,7 +36,8 @@ rm *.gz  # remove empty .gz files
 cd ..
 
 * Load the archives into mongodb
-python to_mongo.py
+python to_mongo.py <listname> <path/to/archives>
+ ie: python to_mongo.py devel lists/devel*
 
 * See the stats:
 python stats.py
